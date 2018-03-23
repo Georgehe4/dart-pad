@@ -80,6 +80,7 @@ typedef void GistFilterHook(Gist gist);
 /// A class to load and save gists. Gists can optionally be modified after
 /// loading and before saving.
 class GistLoader {
+  static String _token;
   static final String _apiUrl = 'https://api.github.com/gists';
 
   static GistFilterHook _defaultLoadHook = (Gist gist) {
@@ -189,6 +190,33 @@ ${styleRef}${dartRef}  </head>
       return gist;
     });
   }
+
+  /// Create a new authenticated gist and return the newly created Gist.
+  Future<Gist> createAuthenticated(Gist gist) {
+    // POST /gists
+    if (beforeSaveHook != null) {
+      gist = gist.clone();
+      beforeSaveHook(gist);
+    }
+
+    obtainAuthToken();
+
+    return HttpRequest
+        .setRequestHeader('Authorization', 'token ' + _token)
+        .request(_apiUrl, method: 'POST', sendData: gist.toJson())
+        .then((HttpRequest request) {
+      Gist gist = new Gist.fromMap(json.decode(request.responseText));
+      if (afterLoadHook != null) {
+        afterLoadHook(gist);
+      }
+      return gist;
+    });
+  }
+
+  /// Checks if there is a valid auth token stored. If not, request a new one from github 
+  void obtainAuthToken() {
+
+  }
 }
 
 /// A representation of a Github gist.
@@ -278,6 +306,7 @@ class GistFile {
 abstract class GistController {
   Future createNewGist();
   Future shareAnon({String summary});
+  Future shareAuthenticated({String summary});
 }
 
 /// A class to store gists in html's localStorage.

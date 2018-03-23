@@ -299,7 +299,32 @@ class Playground implements GistContainer, GistController {
       toast.element
         ..style.cursor = "pointer"
         ..onClick.listen((e) => window.open(
-            "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+            newGist.html_url, '_blank'));
+      GistToInternalIdMapping mapping = new GistToInternalIdMapping()
+        ..gistId = newGist.id
+        ..internalId = _mappingId;
+      dartSupportServices.storeGist(mapping);
+    }).catchError((e) {
+      String message = 'Error saving gist: ${e}';
+      DToast.showMessage(message);
+      ga.sendException('GistLoader.createAnon: failed to create gist');
+    });
+  }
+
+  Future shareAnon({String summary: ""}) {
+    return gistLoader
+        .createAuthenticated(mutableGist.createGist(summary: summary))
+        .then((Gist newGist) {
+      editableGist.setBackingGist(newGist);
+      overrideNextRoute(newGist);
+      router.go('gist', {'gist': newGist.id});
+      var toast = new DToast('Created ${newGist.id}')
+        ..show()
+        ..hide();
+      toast.element
+        ..style.cursor = "pointer"
+        ..onClick.listen((e) => window.open(
+            "https://gist.github.com/${login.id}/${newGist.id}", '_blank'));
       GistToInternalIdMapping mapping = new GistToInternalIdMapping()
         ..gistId = newGist.id
         ..internalId = _mappingId;
