@@ -10,6 +10,7 @@ import 'dart:html';
 
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
+import 'package:cookie/cookie.dart' as cookie;
 
 final String _dartpadLink =
     "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
@@ -213,9 +214,14 @@ ${styleRef}${dartRef}  </head>
     });
   }
 
-  /// Checks if there is a valid auth token stored. If not, request a new one from github 
+  /// Checks if there is a valid auth token stored. If not, request a new one from github.
   void obtainAuthToken() {
-
+    CookieJar jar = new CookieJar(document.cookie);
+    if (jar["authToken"]) {
+      _token = jar["authToken"];
+    } else {
+      
+    }
   }
 }
 
